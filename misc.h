@@ -363,8 +363,7 @@ template <class T, class F, int instance>
 
 // ************** misc functions ***************
 
-#if (!__STDC_WANT_SECURE_LIB__ && !defined(_MEMORY_S_DEFINED)) || defined(CRYPTOPP_WANT_SECURE_LIB)
-
+#if !defined(LEONARDO_SYSTEM_WINDOWS) && ((!__STDC_WANT_SECURE_LIB__ && !defined(_MEMORY_S_DEFINED)) || defined(CRYPTOPP_WANT_SECURE_LIB))
 /// \brief Bounds checking replacement for memcpy()
 /// \param dest pointer to the desination memory block
 /// \param sizeInBytes the size of the desination memory block, in bytes

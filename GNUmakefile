@@ -471,6 +471,10 @@ ifneq ($(IS_LINUX)$(GCC_COMPILER)$(CLANG_COMPILER)$(INTEL_COMPILER),0000)
   CXXFLAGS += -pthread
 endif # CXXFLAGS
 
+ifneq ($(CLANG_COMPILER),0)
+  CXXFLAGS += -Wno-tautological-compare -mmacosx-version-min=10.7
+endif
+
 # Add -pipe for everything except IBM XL C/C++, SunCC and ARM.
 # Allow ARM-64 because they seems to have >1 GB of memory
 ifeq ($(XLC_COMPILER)$(SUN_COMPILER)$(IS_ARM32),000)
@@ -499,6 +503,8 @@ ifneq ($(IS_SUN),0)
 endif
 
 ifeq ($(IS_LINUX),1)
+  #CXXFLAGS += -fsanitize=address -fsanitize=undefined -fsanitize-recover=all -fPIC
+  #LFLAGS += -fsanitize=address -fsanitize=undefined
   ifeq ($(findstring -fopenmp,$(CXXFLAGS)),-fopenmp)
     ifeq ($(findstring -lgomp,$(LDLIBS)),)
       LDLIBS += -lgomp
@@ -510,6 +516,7 @@ ifneq ($(IS_DARWIN),0)
   AR = libtool
   ARFLAGS = -static -o
   CXX ?= c++
+  CXXFLAGS += -arch x86_64 -arch i386
 endif
 
 # Add -errtags=yes to get the name for a warning suppression
@@ -699,6 +706,7 @@ INCL := $(filter-out resource.h,$(sort $(wildcard *.h)))
 ifneq ($(IS_MINGW),0)
 SRCS += winpipes.cpp
 INCL += resource.h
+CXXFLAGS += -DLEONARDO_SYSTEM_WINDOWS
 endif
 
 # List cryptlib.cpp first, then cpu.cpp, then integer.cpp to tame C++ static initialization problems.
