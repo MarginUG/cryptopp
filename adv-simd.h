@@ -54,6 +54,8 @@
 
 ANONYMOUS_NAMESPACE_BEGIN
 
+using CryptoPP::byte;
+using CryptoPP::word32;
 using CryptoPP::BlockTransformation;
 
 CRYPTOPP_CONSTANT(BT_XorInput = BlockTransformation::BT_XorInput)
@@ -107,8 +109,12 @@ inline size_t AdvancedProcessBlocks64_6x2_NEON(F2 func2, F6 func6,
     const ptrdiff_t neonBlockSize = 16;
 
     ptrdiff_t inIncrement = (flags & (BT_InBlockIsCounter|BT_DontIncrementInOutPointers)) ? 0 : neonBlockSize;
-    ptrdiff_t xorIncrement = xorBlocks ? neonBlockSize : 0;
+    ptrdiff_t xorIncrement = (xorBlocks != NULLPTR) ? neonBlockSize : 0;
     ptrdiff_t outIncrement = (flags & BT_DontIncrementInOutPointers) ? 0 : neonBlockSize;
+
+    // Clang and Coverity are generating findings using xorBlocks as a flag.
+    const bool xorInput = (xorBlocks != NULLPTR) && (flags & BT_XorInput);
+    const bool xorOutput = (xorBlocks != NULLPTR) && !(flags & BT_XorInput);
 
     if (flags & BT_ReverseDirection)
     {
@@ -161,7 +167,7 @@ inline size_t AdvancedProcessBlocks64_6x2_NEON(F2 func2, F6 func6,
                 inBlocks += inIncrement;
             }
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
                 block0 = veorq_u32(block0, vreinterpretq_u32_u8(vld1q_u8(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -179,7 +185,7 @@ inline size_t AdvancedProcessBlocks64_6x2_NEON(F2 func2, F6 func6,
 
             func6(block0, block1, block2, block3, block4, block5, subKeys, static_cast<unsigned int>(rounds));
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 block0 = veorq_u32(block0, vreinterpretq_u32_u8(vld1q_u8(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -238,7 +244,7 @@ inline size_t AdvancedProcessBlocks64_6x2_NEON(F2 func2, F6 func6,
                 inBlocks += inIncrement;
             }
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
                 block0 = veorq_u32(block0, vreinterpretq_u32_u8(vld1q_u8(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -248,7 +254,7 @@ inline size_t AdvancedProcessBlocks64_6x2_NEON(F2 func2, F6 func6,
 
             func2(block0, block1, subKeys, static_cast<unsigned int>(rounds));
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 block0 = veorq_u32(block0, vreinterpretq_u32_u8(vld1q_u8(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -291,7 +297,7 @@ inline size_t AdvancedProcessBlocks64_6x2_NEON(F2 func2, F6 func6,
             const uint8x8_t v = vld1_u8(inBlocks);
             block = vreinterpretq_u32_u8(vcombine_u8(v,v));
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
                 const uint8x8_t x = vld1_u8(xorBlocks);
                 block = veorq_u32(block, vreinterpretq_u32_u8(vcombine_u8(x,x)));
@@ -302,7 +308,7 @@ inline size_t AdvancedProcessBlocks64_6x2_NEON(F2 func2, F6 func6,
 
             func2(block, zero, subKeys, static_cast<unsigned int>(rounds));
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 const uint8x8_t x = vld1_u8(xorBlocks);
                 block = veorq_u32(block, vreinterpretq_u32_u8(vcombine_u8(x,x)));
@@ -335,8 +341,12 @@ size_t AdvancedProcessBlocks128_NEON1x6(F1 func1, F6 func6,
     // const ptrdiff_t neonBlockSize = 16;
 
     ptrdiff_t inIncrement = (flags & (BT_InBlockIsCounter|BT_DontIncrementInOutPointers)) ? 0 : blockSize;
-    ptrdiff_t xorIncrement = xorBlocks ? blockSize : 0;
+    ptrdiff_t xorIncrement = (xorBlocks != NULLPTR) ? blockSize : 0;
     ptrdiff_t outIncrement = (flags & BT_DontIncrementInOutPointers) ? 0 : blockSize;
+
+    // Clang and Coverity are generating findings using xorBlocks as a flag.
+    const bool xorInput = (xorBlocks != NULLPTR) && (flags & BT_XorInput);
+    const bool xorOutput = (xorBlocks != NULLPTR) && !(flags & BT_XorInput);
 
     if (flags & BT_ReverseDirection)
     {
@@ -382,7 +392,7 @@ size_t AdvancedProcessBlocks128_NEON1x6(F1 func1, F6 func6,
                 inBlocks += inIncrement;
             }
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
                 block0 = veorq_u64(block0, vreinterpretq_u64_u8(vld1q_u8(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -400,7 +410,7 @@ size_t AdvancedProcessBlocks128_NEON1x6(F1 func1, F6 func6,
 
             func6(block0, block1, block2, block3, block4, block5, subKeys, static_cast<unsigned int>(rounds));
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 block0 = veorq_u64(block0, vreinterpretq_u64_u8(vld1q_u8(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -438,7 +448,7 @@ size_t AdvancedProcessBlocks128_NEON1x6(F1 func1, F6 func6,
         uint64x2_t block;
         block = vreinterpretq_u64_u8(vld1q_u8(inBlocks));
 
-        if (flags & BT_XorInput)
+        if (xorInput)
             block = veorq_u64(block, vreinterpretq_u64_u8(vld1q_u8(xorBlocks)));
 
         if (flags & BT_InBlockIsCounter)
@@ -446,7 +456,7 @@ size_t AdvancedProcessBlocks128_NEON1x6(F1 func1, F6 func6,
 
         func1(block, subKeys, static_cast<unsigned int>(rounds));
 
-        if (xorBlocks && !(flags & BT_XorInput))
+        if (xorOutput)
             block = veorq_u64(block, vreinterpretq_u64_u8(vld1q_u8(xorBlocks)));
 
         vst1q_u8(outBlocks, vreinterpretq_u8_u64(block));
@@ -474,8 +484,12 @@ size_t AdvancedProcessBlocks128_6x2_NEON(F2 func2, F6 func6,
     // const ptrdiff_t neonBlockSize = 16;
 
     ptrdiff_t inIncrement = (flags & (BT_InBlockIsCounter|BT_DontIncrementInOutPointers)) ? 0 : blockSize;
-    ptrdiff_t xorIncrement = xorBlocks ? blockSize : 0;
+    ptrdiff_t xorIncrement = (xorBlocks != NULLPTR) ? blockSize : 0;
     ptrdiff_t outIncrement = (flags & BT_DontIncrementInOutPointers) ? 0 : blockSize;
+
+    // Clang and Coverity are generating findings using xorBlocks as a flag.
+    const bool xorInput = (xorBlocks != NULLPTR) && (flags & BT_XorInput);
+    const bool xorOutput = (xorBlocks != NULLPTR) && !(flags & BT_XorInput);
 
     if (flags & BT_ReverseDirection)
     {
@@ -521,7 +535,7 @@ size_t AdvancedProcessBlocks128_6x2_NEON(F2 func2, F6 func6,
                 inBlocks += inIncrement;
             }
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
                 block0 = veorq_u64(block0, vreinterpretq_u64_u8(vld1q_u8(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -539,7 +553,7 @@ size_t AdvancedProcessBlocks128_6x2_NEON(F2 func2, F6 func6,
 
             func6(block0, block1, block2, block3, block4, block5, subKeys, static_cast<unsigned int>(rounds));
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 block0 = veorq_u64(block0, vreinterpretq_u64_u8(vld1q_u8(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -591,7 +605,7 @@ size_t AdvancedProcessBlocks128_6x2_NEON(F2 func2, F6 func6,
                 inBlocks += inIncrement;
             }
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
                 block0 = veorq_u64(block0, vreinterpretq_u64_u8(vld1q_u8(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -601,7 +615,7 @@ size_t AdvancedProcessBlocks128_6x2_NEON(F2 func2, F6 func6,
 
             func2(block0, block1, subKeys, static_cast<unsigned int>(rounds));
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 block0 = veorq_u64(block0, vreinterpretq_u64_u8(vld1q_u8(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -623,7 +637,7 @@ size_t AdvancedProcessBlocks128_6x2_NEON(F2 func2, F6 func6,
         uint64x2_t block, zero = {0,0};
         block = vreinterpretq_u64_u8(vld1q_u8(inBlocks));
 
-        if (flags & BT_XorInput)
+        if (xorInput)
             block = veorq_u64(block, vreinterpretq_u64_u8(vld1q_u8(xorBlocks)));
 
         if (flags & BT_InBlockIsCounter)
@@ -631,7 +645,7 @@ size_t AdvancedProcessBlocks128_6x2_NEON(F2 func2, F6 func6,
 
         func2(block, zero, subKeys, static_cast<unsigned int>(rounds));
 
-        if (xorBlocks && !(flags & BT_XorInput))
+        if (xorOutput)
             block = veorq_u64(block, vreinterpretq_u64_u8(vld1q_u8(xorBlocks)));
 
         vst1q_u8(outBlocks, vreinterpretq_u8_u64(block));
@@ -709,8 +723,12 @@ inline size_t GCC_NO_UBSAN AdvancedProcessBlocks64_6x2_SSE(F2 func2, F6 func6,
     const ptrdiff_t xmmBlockSize = 16;
 
     ptrdiff_t inIncrement = (flags & (BT_InBlockIsCounter|BT_DontIncrementInOutPointers)) ? 0 : xmmBlockSize;
-    ptrdiff_t xorIncrement = xorBlocks ? xmmBlockSize : 0;
+    ptrdiff_t xorIncrement = (xorBlocks != NULLPTR) ? xmmBlockSize : 0;
     ptrdiff_t outIncrement = (flags & BT_DontIncrementInOutPointers) ? 0 : xmmBlockSize;
+
+    // Clang and Coverity are generating findings using xorBlocks as a flag.
+    const bool xorInput = (xorBlocks != NULLPTR) && (flags & BT_XorInput);
+    const bool xorOutput = (xorBlocks != NULLPTR) && !(flags & BT_XorInput);
 
     if (flags & BT_ReverseDirection)
     {
@@ -763,10 +781,8 @@ inline size_t GCC_NO_UBSAN AdvancedProcessBlocks64_6x2_SSE(F2 func2, F6 func6,
                 inBlocks += inIncrement;
             }
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
-                // Coverity finding, appears to be false positive. Assert the condition.
-                CRYPTOPP_ASSERT(xorBlocks);
                 block0 = _mm_xor_si128(block0, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
                 xorBlocks += xorIncrement;
                 block1 = _mm_xor_si128(block1, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
@@ -783,7 +799,7 @@ inline size_t GCC_NO_UBSAN AdvancedProcessBlocks64_6x2_SSE(F2 func2, F6 func6,
 
             func6(block0, block1, block2, block3, block4, block5, subKeys, static_cast<unsigned int>(rounds));
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 block0 = _mm_xor_si128(block0, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -842,10 +858,8 @@ inline size_t GCC_NO_UBSAN AdvancedProcessBlocks64_6x2_SSE(F2 func2, F6 func6,
                 inBlocks += inIncrement;
             }
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
-                // Coverity finding, appears to be false positive. Assert the condition.
-                CRYPTOPP_ASSERT(xorBlocks);
                 block0 = _mm_xor_si128(block0, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
                 xorBlocks += xorIncrement;
                 block1 = _mm_xor_si128(block1, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
@@ -854,7 +868,7 @@ inline size_t GCC_NO_UBSAN AdvancedProcessBlocks64_6x2_SSE(F2 func2, F6 func6,
 
             func2(block0, block1, subKeys, static_cast<unsigned int>(rounds));
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 block0 = _mm_xor_si128(block0, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -897,7 +911,7 @@ inline size_t GCC_NO_UBSAN AdvancedProcessBlocks64_6x2_SSE(F2 func2, F6 func6,
                 // UBsan false positive; mem_addr can be unaligned.
                 _mm_load_sd(CONST_DOUBLE_CAST(inBlocks)));
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
                 block = _mm_xor_si128(block, _mm_castpd_si128(
                     // UBsan false positive; mem_addr can be unaligned.
@@ -909,7 +923,7 @@ inline size_t GCC_NO_UBSAN AdvancedProcessBlocks64_6x2_SSE(F2 func2, F6 func6,
 
             func2(block, zero, subKeys, static_cast<unsigned int>(rounds));
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 block = _mm_xor_si128(block, _mm_castpd_si128(
                     // UBsan false positive; mem_addr can be unaligned.
@@ -943,8 +957,12 @@ inline size_t AdvancedProcessBlocks128_6x2_SSE(F2 func2, F6 func6,
     // const ptrdiff_t xmmBlockSize = 16;
 
     ptrdiff_t inIncrement = (flags & (BT_InBlockIsCounter|BT_DontIncrementInOutPointers)) ? 0 : blockSize;
-    ptrdiff_t xorIncrement = xorBlocks ? blockSize : 0;
+    ptrdiff_t xorIncrement = (xorBlocks != NULLPTR) ? blockSize : 0;
     ptrdiff_t outIncrement = (flags & BT_DontIncrementInOutPointers) ? 0 : blockSize;
+
+    // Clang and Coverity are generating findings using xorBlocks as a flag.
+    const bool xorInput = (xorBlocks != NULLPTR) && (flags & BT_XorInput);
+    const bool xorOutput = (xorBlocks != NULLPTR) && !(flags & BT_XorInput);
 
     if (flags & BT_ReverseDirection)
     {
@@ -988,10 +1006,8 @@ inline size_t AdvancedProcessBlocks128_6x2_SSE(F2 func2, F6 func6,
                 inBlocks += inIncrement;
             }
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
-                // Coverity finding, appears to be false positive. Assert the condition.
-                CRYPTOPP_ASSERT(xorBlocks);
                 block0 = _mm_xor_si128(block0, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
                 xorBlocks += xorIncrement;
                 block1 = _mm_xor_si128(block1, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
@@ -1008,7 +1024,7 @@ inline size_t AdvancedProcessBlocks128_6x2_SSE(F2 func2, F6 func6,
 
             func6(block0, block1, block2, block3, block4, block5, subKeys, static_cast<unsigned int>(rounds));
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 block0 = _mm_xor_si128(block0, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -1058,10 +1074,8 @@ inline size_t AdvancedProcessBlocks128_6x2_SSE(F2 func2, F6 func6,
                 inBlocks += inIncrement;
             }
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
-                // Coverity finding, appears to be false positive. Assert the condition.
-                CRYPTOPP_ASSERT(xorBlocks);
                 block0 = _mm_xor_si128(block0, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
                 xorBlocks += xorIncrement;
                 block1 = _mm_xor_si128(block1, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
@@ -1070,7 +1084,7 @@ inline size_t AdvancedProcessBlocks128_6x2_SSE(F2 func2, F6 func6,
 
             func2(block0, block1, subKeys, static_cast<unsigned int>(rounds));
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 block0 = _mm_xor_si128(block0, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -1092,7 +1106,7 @@ inline size_t AdvancedProcessBlocks128_6x2_SSE(F2 func2, F6 func6,
         __m128i block, zero = _mm_setzero_si128();
         block = _mm_loadu_si128(CONST_M128_CAST(inBlocks));
 
-        if (flags & BT_XorInput)
+        if (xorInput)
             block = _mm_xor_si128(block, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
 
         if (flags & BT_InBlockIsCounter)
@@ -1100,7 +1114,7 @@ inline size_t AdvancedProcessBlocks128_6x2_SSE(F2 func2, F6 func6,
 
         func2(block, zero, subKeys, static_cast<unsigned int>(rounds));
 
-        if (xorBlocks && !(flags & BT_XorInput))
+        if (xorOutput)
             block = _mm_xor_si128(block, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
 
         _mm_storeu_si128(M128_CAST(outBlocks), block);
@@ -1128,8 +1142,12 @@ inline size_t AdvancedProcessBlocks128_4x1_SSE(F1 func1, F4 func4,
     // const ptrdiff_t xmmBlockSize = 16;
 
     ptrdiff_t inIncrement = (flags & (BT_InBlockIsCounter|BT_DontIncrementInOutPointers)) ? 0 : blockSize;
-    ptrdiff_t xorIncrement = xorBlocks ? blockSize : 0;
+    ptrdiff_t xorIncrement = (xorBlocks != NULLPTR) ? blockSize : 0;
     ptrdiff_t outIncrement = (flags & BT_DontIncrementInOutPointers) ? 0 : blockSize;
+
+    // Clang and Coverity are generating findings using xorBlocks as a flag.
+    const bool xorInput = (xorBlocks != NULLPTR) && (flags & BT_XorInput);
+    const bool xorOutput = (xorBlocks != NULLPTR) && !(flags & BT_XorInput);
 
     if (flags & BT_ReverseDirection)
     {
@@ -1167,10 +1185,8 @@ inline size_t AdvancedProcessBlocks128_4x1_SSE(F1 func1, F4 func4,
                 inBlocks += inIncrement;
             }
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
-                // Coverity finding, appears to be false positive. Assert the condition.
-                CRYPTOPP_ASSERT(xorBlocks);
                 block0 = _mm_xor_si128(block0, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
                 xorBlocks += xorIncrement;
                 block1 = _mm_xor_si128(block1, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
@@ -1183,7 +1199,7 @@ inline size_t AdvancedProcessBlocks128_4x1_SSE(F1 func1, F4 func4,
 
             func4(block0, block1, block2, block3, subKeys, static_cast<unsigned int>(rounds));
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 block0 = _mm_xor_si128(block0, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
                 xorBlocks += xorIncrement;
@@ -1212,7 +1228,7 @@ inline size_t AdvancedProcessBlocks128_4x1_SSE(F1 func1, F4 func4,
     {
         __m128i block = _mm_loadu_si128(CONST_M128_CAST(inBlocks));
 
-        if (flags & BT_XorInput)
+        if (xorInput)
             block = _mm_xor_si128(block, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
 
         if (flags & BT_InBlockIsCounter)
@@ -1220,7 +1236,7 @@ inline size_t AdvancedProcessBlocks128_4x1_SSE(F1 func1, F4 func4,
 
         func1(block, subKeys, static_cast<unsigned int>(rounds));
 
-        if (xorBlocks && !(flags & BT_XorInput))
+        if (xorOutput)
             block = _mm_xor_si128(block, _mm_loadu_si128(CONST_M128_CAST(xorBlocks)));
 
         _mm_storeu_si128(M128_CAST(outBlocks), block);
@@ -1266,16 +1282,21 @@ size_t AdvancedProcessBlocks128_6x1_ALTIVEC(F1 func1, F6 func6, const word32 *su
     CRYPTOPP_ASSERT(length >= 16);
 
     const ptrdiff_t blockSize = 16;
+    // const ptrdiff_t vexBlockSize = 16;
 
     ptrdiff_t inIncrement = (flags & (BT_InBlockIsCounter|BT_DontIncrementInOutPointers)) ? 0 : blockSize;
-    ptrdiff_t xorIncrement = xorBlocks ? blockSize : 0;
+    ptrdiff_t xorIncrement = (xorBlocks != NULLPTR) ? blockSize : 0;
     ptrdiff_t outIncrement = (flags & BT_DontIncrementInOutPointers) ? 0 : blockSize;
+
+    // Clang and Coverity are generating findings using xorBlocks as a flag.
+    const bool xorInput = (xorBlocks != NULLPTR) && (flags & BT_XorInput);
+    const bool xorOutput = (xorBlocks != NULLPTR) && !(flags & BT_XorInput);
 
     if (flags & BT_ReverseDirection)
     {
-        inBlocks += length - blockSize;
-        xorBlocks += length - blockSize;
-        outBlocks += length - blockSize;
+        inBlocks += static_cast<ptrdiff_t>(length) - blockSize;
+        xorBlocks += static_cast<ptrdiff_t>(length) - blockSize;
+        outBlocks += static_cast<ptrdiff_t>(length) - blockSize;
         inIncrement = 0-inIncrement;
         xorIncrement = 0-xorIncrement;
         outIncrement = 0-outIncrement;
@@ -1314,7 +1335,7 @@ size_t AdvancedProcessBlocks128_6x1_ALTIVEC(F1 func1, F6 func6, const word32 *su
                 inBlocks += inIncrement;
             }
 
-            if (flags & BT_XorInput)
+            if (xorInput)
             {
                 block0 = VectorXor(block0, VectorLoad(xorBlocks));
                 xorBlocks += xorIncrement;
@@ -1332,7 +1353,7 @@ size_t AdvancedProcessBlocks128_6x1_ALTIVEC(F1 func1, F6 func6, const word32 *su
 
             func6(block0, block1, block2, block3, block4, block5, subKeys, rounds);
 
-            if (xorBlocks && !(flags & BT_XorInput))
+            if (xorOutput)
             {
                 block0 = VectorXor(block0, VectorLoad(xorBlocks));
                 xorBlocks += xorIncrement;
@@ -1369,7 +1390,7 @@ size_t AdvancedProcessBlocks128_6x1_ALTIVEC(F1 func1, F6 func6, const word32 *su
     {
         uint32x4_p block = VectorLoad(inBlocks);
 
-        if (flags & BT_XorInput)
+        if (xorInput)
             block = VectorXor(block, VectorLoad(xorBlocks));
 
         if (flags & BT_InBlockIsCounter)
@@ -1377,7 +1398,7 @@ size_t AdvancedProcessBlocks128_6x1_ALTIVEC(F1 func1, F6 func6, const word32 *su
 
         func1(block, subKeys, rounds);
 
-        if (xorBlocks && !(flags & BT_XorInput))
+        if (xorOutput)
             block = VectorXor(block, VectorLoad(xorBlocks));
 
         VectorStore(block, outBlocks);
