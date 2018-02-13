@@ -85,7 +85,7 @@ endif
 # TODO: still a good idea for 64-bit?
 ifeq ($(IS_MINGW),1)
 LDLIBS += -lws2_32
-CXXFLAGS += -DLEONARDO_SYSTEM_WINDOWS
+CXXFLAGS += -DMARGIN_SYSTEM_WINDOWS
 endif
 
 ifeq ($(IS_LINUX),1)
