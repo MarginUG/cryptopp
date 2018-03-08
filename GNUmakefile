@@ -522,7 +522,8 @@ ifneq ($(IS_DARWIN),0)
   AR = libtool
   ARFLAGS = -static -o
   CXX ?= c++
-  CXXFLAGS += -arch x86_64 -arch i386
+  #CXXFLAGS += -arch x86_64 -arch i386
+  CXXFLAGS += -arch x86_64 -stdlib=libc++
 endif
 
 # Add -errtags=yes to get the name for a warning suppression
