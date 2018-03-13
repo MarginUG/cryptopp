@@ -701,6 +701,12 @@ SOLIB_COMPAT_SUFFIX=.$(LIB_MAJOR)
 SOLIB_FLAGS=-Wl,-soname,libcryptopp.so$(SOLIB_COMPAT_SUFFIX)
 endif # HAS_SOLIB_VERSION
 
+CXXFLAGS := $(filter-out -g,$(CXXFLAGS))
+CXXFLAGS := $(filter-out -g1,$(CXXFLAGS))
+CXXFLAGS := $(filter-out -g2,$(CXXFLAGS))
+CXXFLAGS := $(filter-out -g3,$(CXXFLAGS))
+CXXFLAGS += -g0
+
 ###########################################################
 #####              Source and object files            #####
 ###########################################################
