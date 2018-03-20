@@ -214,8 +214,24 @@ CXXFLAGS += -pipe
 endif
 endif
 
-else
 
+# margin added this!
+ifeq ($(IS_MINGW)$(IS_X86),11)
+CXXFLAGS += -DCRYPTOPP_DISABLE_AESNI  -DCRYPTOPP_DISABLE_ASM  -DCRYPTOPP_DISABLE_SSE4
+endif
+CXXFLAGS := $(filter-out -g,$(CXXFLAGS))
+CXXFLAGS := $(filter-out -g1,$(CXXFLAGS))
+CXXFLAGS := $(filter-out -g2,$(CXXFLAGS))
+CXXFLAGS := $(filter-out -g3,$(CXXFLAGS))
+CXXFLAGS += -g0
+
+CXXFLAGS := $(filter-out -O0,$(CXXFLAGS))
+CXXFLAGS := $(filter-out -O1,$(CXXFLAGS))
+CXXFLAGS := $(filter-out -O2,$(CXXFLAGS))
+CXXFLAGS += -O3
+
+
+else
 ###########################################################
 #####                 Not X86/X32/X64                 #####
 ###########################################################
@@ -451,7 +467,8 @@ DLLTESTOBJS := dlltest.dllonly.o
 ###########################################################
 
 .PHONY: all
-all: cryptest.exe
+
+all: cryptest.exe 
 
 ifneq ($(IS_DARWIN),0)
 static: libcryptopp.a
