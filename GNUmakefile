@@ -6,6 +6,7 @@ AR ?= ar
 ARFLAGS ?= -cr # ar needs the dash on OpenBSD
 RANLIB ?= ranlib
 
+# hihi!
 CP ?= cp
 MV ?= mv
 EGREP ?= egrep
