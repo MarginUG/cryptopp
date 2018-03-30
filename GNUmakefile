@@ -223,7 +223,8 @@ CXXFLAGS := $(filter-out -g,$(CXXFLAGS))
 CXXFLAGS := $(filter-out -g1,$(CXXFLAGS))
 CXXFLAGS := $(filter-out -g2,$(CXXFLAGS))
 CXXFLAGS := $(filter-out -g3,$(CXXFLAGS))
-CXXFLAGS += -g0
+CXXFLAGS := $(filter-out -march=native,$(CXXFLAGS))
+CXXFLAGS += -g0 -march=core2
 
 CXXFLAGS := $(filter-out -O0,$(CXXFLAGS))
 CXXFLAGS := $(filter-out -O1,$(CXXFLAGS))
